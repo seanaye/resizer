@@ -1045,6 +1045,7 @@ dependencies = [
  "gloo-net",
  "http",
  "image",
+ "js-sys",
  "log",
  "reqwest",
  "rusty-s3",

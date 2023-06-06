@@ -1,6 +1,6 @@
 mod download;
-mod format;
 mod error;
+mod format;
 use std::{
   io::{BufWriter, Cursor},
   panic,
@@ -49,16 +49,15 @@ impl App {
     url: String,
     width: u32,
     height: u32,
-  ) -> web_sys::Response {
-    match self.handler_inner(url, width, height).await {
-      Ok(res) => res.into(),
-      Err(e) => Response::builder()
+  ) -> Result<js_sys::Uint8Array, web_sys::Response> {
+    self.handler_inner(url, width, height).await.map_err(|e| {
+      Response::builder()
         .status(500)
         .header("Content-Type", "application/json")
         .body(Some(format!(r#"message": "{:?}"#, e).as_str()))
         .unwrap()
-        .into(),
-    }
+        .into()
+    })
   }
 
   async fn handler_inner(
@@ -66,7 +65,7 @@ impl App {
     object: String,
     width: u32,
     height: u32,
-  ) -> Result<Response, Error> {
+  ) -> Result<js_sys::Uint8Array, Error> {
     let performance = web_sys::window().unwrap().performance().unwrap();
     let download_start = performance.now();
     let (bytes, format) = self.download_client.get_image(&object).await?;
@@ -75,8 +74,9 @@ impl App {
 
     let start = performance.now();
     // let reader = Reader::with_format(buffer, image::ImageFormat::Jpeg);
-    let image = image::load_from_memory_with_format(bytes.as_ref(), (&format).into())
-      .map_err(Error::Image)?;
+    let image =
+      image::load_from_memory_with_format(bytes.as_ref(), (&format).into())
+        .map_err(Error::Image)?;
     let decoded = performance.now();
 
     info!(
@@ -111,14 +111,8 @@ impl App {
     let done_write = performance.now();
     info!("done writing in {}ms", done_write - done_resize);
 
-    Ok(
-      Response::builder()
-        .header("Content-Type", header_format.as_str())
-        .header("X-Image-Width", format!("{output_width}").as_str())
-        .header("X-Image-Height", format!("{output_height}").as_str())
-        .body(Some(vec.as_mut_slice()))
-        .unwrap(),
-    )
+    let output = js_sys::Uint8Array::new_with_length(vec.len() as u32);
+    output.copy_from(&vec);
+    Ok(output)
   }
 }
-

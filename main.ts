@@ -9,8 +9,8 @@ if (!key || !secret) throw new Error("No key or secret provided");
 const mod = await instantiate();
 const app = mod.App.new(
   "https://nyc3.digitaloceanspaces.com",
-  "photostore.nyc3.cdn.digitaloceanspaces.com",
-  "photostore",
+  "kavir.nyc3.cdn.digitaloceanspaces.com",
+  "kavir",
   "nyc3",
   key,
   secret

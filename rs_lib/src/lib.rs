@@ -11,7 +11,7 @@ use std::{
 use cache::{Cache, CachePayload};
 use error::Error;
 use gloo_net::http::Response;
-use image::io::Reader;
+use image::{io::Reader, DynamicImage};
 use log::{info, Level};
 use s3::DownloadClient;
 use wasm_bindgen::prelude::*;
@@ -77,6 +77,18 @@ impl App {
       .collect::<js_sys::Array>()
   }
 
+  fn get_output_image(
+    &self,
+    image: DynamicImage,
+    width: u32,
+    height: u32,
+  ) -> DynamicImage {
+    if width == 0 || height == 0 {
+      return image;
+    }
+    image.thumbnail(width, height)
+  }
+
   async fn handler_inner(
     &self,
     object: String,
@@ -118,7 +130,7 @@ impl App {
       image.height(),
       decoded - start
     );
-    let resized = image.thumbnail(width, height);
+    let resized = self.get_output_image(image, width, height);
     let done_resize = performance.now();
     let output_width = resized.width();
     let output_height = resized.height();

@@ -38,8 +38,8 @@ serve(
     try {
       result = await app.handler(
         pathname.replace("/", ""),
-        isNaN(width) ? 500 : width,
-        isNaN(height) ? 500 : height
+        isNaN(width) ? 0 : width,
+        isNaN(height) ? 0 : height
       );
     } catch (e: unknown) {
       return e as unknown as Response;
@@ -51,5 +51,5 @@ serve(
       },
     });
   },
-  { port: 8000 }
+  { port: 8001 }
 );
